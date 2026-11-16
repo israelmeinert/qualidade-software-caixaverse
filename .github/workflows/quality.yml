@@ -84,18 +84,22 @@ jobs:
         with:
           name: sonar-input-${{ github.run_attempt }}
           path: target
-      - name: SonarQube e Quality Gate
+      - name: SonarQube Cloud e Quality Gate
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+          SONAR_TOKEN: ${{ secrets.SONAR_CLOUD_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_CLOUD_HOST_URL || 'https://sonarcloud.io' }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_CLOUD_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_CLOUD_PROJECT_KEY }}
         run: |
-          : "${SONAR_TOKEN:?Secret SONAR_TOKEN pendente na configuração do repositório}"
-          : "${SONAR_HOST_URL:?Variable SONAR_HOST_URL pendente}"
-          : "${SONAR_PROJECT_KEY:?Variable SONAR_PROJECT_KEY pendente}"
+          : "${SONAR_TOKEN:?Configure o secret SONAR_CLOUD_TOKEN}"
+          : "${SONAR_ORGANIZATION:?Configure a variável SONAR_CLOUD_ORGANIZATION}"
+          : "${SONAR_PROJECT_KEY:?Configure a variável SONAR_CLOUD_PROJECT_KEY}"
+          case "$SONAR_HOST_URL" in
+            https://sonarcloud.io|https://sonarqube.us) ;;
+            *) echo "::error::Use a URL regional oficial do SonarQube Cloud."; exit 1 ;;
+          esac
           test -s target/jacoco-report/jacoco.xml
-          ./mvnw -B -Pcoverage org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar \
-            -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300
+          ./mvnw -B -Pcoverage,sonar-cloud -Dsonar.host.url="$SONAR_HOST_URL" sonar:sonar
 
   mutation:
     runs-on: ubuntu-24.04

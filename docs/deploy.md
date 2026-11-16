@@ -11,7 +11,7 @@ O fluxo está **configurado no código, ainda não validado remotamente**. A bra
 5. Configure uma chave SSH exclusiva por ambiente e restrinja a conta de deploy. Use entrada de `known_hosts` obtida por canal confiável e verifique o fingerprint antes de armazená-la. O script exige `StrictHostKeyChecking=yes`. Permita rede SSH só a partir de runners autorizados.
 6. Crie GitHub Environments `staging` e `production`. Cadastre em cada um as variables `DEPLOY_HOST`, `DEPLOY_PORT` (opcional, 22), `DEPLOY_USER`, `DEPLOY_DIR` e `DEPLOY_SMOKE_URL` (exemplo `http://127.0.0.1:8080/q/health/ready`, resolvida pela VM). Cadastre `DEPLOY_SSH_KEY` e `DEPLOY_KNOWN_HOSTS` como secrets do Environment. Defina a variable de repositório `STAGING_ENABLED=true` depois de preparar a VM de staging.
 7. Para `production`, em Deployment branches and tags selecione uma regra de branch que permita **somente `final`**. Configure required reviewers e impeça autoaprovação onde o plano permitir. Sem o recurso, exija autorização externa independente registrada no PR ou chamado, limite quem pode operar o dispatch e anexar o ID verificado. Clicar Run workflow é acionamento manual. A aprovação independente exige outro agente autorizado.
-8. Proteja `final` contra pushes e force-pushes diretos no fluxo normal, exija revisão em alterações de workflows/scripts e use owners reais. Configure Sonar e checks como em [SonarQube](sonarqube-passo-a-passo.md). Use as capacidades do plano privado disponível.
+8. Proteja `final` contra pushes e force-pushes diretos no fluxo normal, exija revisão em alterações de workflows/scripts e use owners reais. Configure Sonar e checks como em [SonarQube](sonarqube-cloud.md). Use as capacidades do plano privado disponível.
 
 ## Publicação e promoção
 

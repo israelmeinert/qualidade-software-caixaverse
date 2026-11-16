@@ -1,5 +1,7 @@
 # SonarQube Community Build
 
+O [SonarQube Cloud](sonarqube-cloud.md) atende ao workflow da branch final. Este roteiro usa o Community Build no laboratório local.
+
 A trilha usa Community Build com MQR Mode e analisa somente a branch principal, configurada como `final`. Em PR a verificação local do runner inclui testes e, a partir da fase de correção, PIT. Este produto não analisa nem decora PRs. Para uma trilha de análise de PR, verifique Developer Edition ou um plano Cloud com o recurso, habilite GitHub App com acesso ao repositório e adapte os checks. Forks normalmente ficam sem secrets, portanto não recebem aprovação Sonar quando ela for exigida.
 
 ## Ambiente e projeto

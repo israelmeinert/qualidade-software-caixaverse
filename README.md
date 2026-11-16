@@ -73,4 +73,4 @@ git switch final
 ./scripts/demo.sh pit
 ~~~
 
-Consulte o [roteiro do professor](docs/roteiro-demo.md), [JaCoCo](docs/jacoco.md), [PIT](docs/mutacao.md), [SonarQube](docs/sonarqube-passo-a-passo.md), [evidências](docs/evidencias/README.md) e [exercícios](exercicios/README.md). Produção e staging estão configurados no código, ainda não validados remotamente. O [guia de entrega](docs/deploy.md) descreve a infraestrutura e a configuração para publicação posterior.
+Consulte o [roteiro do professor](docs/roteiro-demo.md), [JaCoCo](docs/jacoco.md), [PIT](docs/mutacao.md), [SonarQube](docs/sonarqube-cloud.md), [evidências](docs/evidencias/README.md) e [exercícios](exercicios/README.md). Produção e staging estão configurados no código, ainda não validados remotamente. O [guia de entrega](docs/deploy.md) descreve a infraestrutura e a configuração para publicação posterior.
