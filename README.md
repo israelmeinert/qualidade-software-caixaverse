@@ -46,3 +46,31 @@ Para remover o volume e apagar **os dois bancos locais da aula**, execute delibe
 | GET `/q/health/live`, `/q/health/ready` | público |
 
 A matriz correta de negócio para −1, 0, 1, 9, 10, 11, 44, 45, 46 e 60 é, respectivamente, exceção, 0, 10, 90, 150, 160, 490, 500, 500 e 500. Uma solicitação de resgate envia `productId`, `quantity` e, quando permitido, `personalization`.
+
+### Percurso da aula
+
+| Branch | Tag | Marco |
+| --- | --- | --- |
+| main | aula-main | MVC, banco e baseline fraca com bônus incorretamente exclusivo |
+| 01-sonar-ci | aula-sonar | JaCoCo combinado, perfil/gate Sonar e revisão |
+| 02-mutacao-diagnostico | aula-mutacao | PIT de diagnóstico com score mínimo zero |
+| 03-testes-fortes | aula-vermelha | Oráculos independentes e falha intencional para 10 entregas |
+| 04-correcao-qualidade | aula-correcao | Fronteira corrigida, concorrência/integridade verificadas e score mínimo de 80% |
+| final | aula-final | CI/CD, roteiro, exercícios e evidências do laboratório |
+
+~~~bash
+git switch main
+./mvnw -B clean test
+git switch 01-sonar-ci
+docker compose up -d --wait postgres
+./mvnw -B -Pcoverage clean verify
+git switch 02-mutacao-diagnostico
+./mvnw -B -Pmutation clean test-compile org.pitest:pitest-maven:1.30.2:mutationCoverage
+git switch 03-testes-fortes
+./mvnw -B clean test # falha esperada para 10 entregas
+git switch final
+./scripts/demo.sh verify
+./scripts/demo.sh pit
+~~~
+
+Consulte o [roteiro do professor](docs/roteiro-demo.md), [JaCoCo](docs/jacoco.md), [PIT](docs/mutacao.md), [SonarQube](docs/sonarqube-passo-a-passo.md), [evidências](docs/evidencias/README.md) e [exercícios](exercicios/README.md). Produção e staging estão configurados no código, ainda não validados remotamente. O [guia de entrega](docs/deploy.md) descreve a infraestrutura e a configuração para publicação posterior.
