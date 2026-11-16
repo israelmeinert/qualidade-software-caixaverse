@@ -1,0 +1,5 @@
+# Troque os placeholders por membros ou times reais com acesso ao repositório.
+* @ORG/REVISORES
+/.github/workflows/ @ORG/PLATAFORMA
+/scripts/deploy/ @ORG/PLATAFORMA
+/src/main/resources/db/ @ORG/DADOS
