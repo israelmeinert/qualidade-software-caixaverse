@@ -151,3 +151,84 @@ jobs:
       - env:
           REQUIRED_RESULTS: ${{ toJSON(needs) }}
         run: bash scripts/require-success.sh
+
+  publish-image:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/final' }}
+    needs: quality-required-delivery
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.publish.outputs.image }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: ./mvnw -B -DskipTests package
+      - name: Publicar imagem JVM por SHA e capturar digest
+        id: publish
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          builder="rewards-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          trap 'docker buildx rm "$builder" >/dev/null 2>&1 || true; docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          docker buildx create --name "$builder" --use --driver docker-container \
+            --driver-opt image=moby/buildkit:v0.35.0@sha256:aa632b921ef07411d2cb77292cd34213d4f7b384001d6fceef1e1f25bf9752bb
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          docker buildx build --platform linux/amd64 --push --provenance=mode=min \
+            --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --tag "$image:$GITHUB_SHA" --metadata-file "$RUNNER_TEMP/image-metadata.json" .
+          digest=$(jq -er '."containerimage.digest" | select(test("^sha256:[a-f0-9]{64}$"))' \
+            "$RUNNER_TEMP/image-metadata.json")
+          printf 'image=%s@%s\n' "$image" "$digest" >> "$GITHUB_OUTPUT"
+
+  deploy-staging:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/final' && vars.STAGING_ENABLED == 'true' }}
+    needs: [quality-required-delivery, publish-image]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: staging
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Implantar e verificar em staging
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_DIR: ${{ vars.DEPLOY_DIR }}
+          DEPLOY_SMOKE_URL: ${{ vars.DEPLOY_SMOKE_URL }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          RELEASE_IMAGE: ${{ needs.publish-image.outputs.image }}
+        run: bash scripts/deploy/ssh-update.sh "$RELEASE_IMAGE"
+      - name: Registrar o digest verificado
+        env:
+          RELEASE_IMAGE: ${{ needs.publish-image.outputs.image }}
+        run: |
+          jq -n --arg repository "$GITHUB_REPOSITORY" --arg sha "$GITHUB_SHA" \
+            --arg run_id "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" --arg image "$RELEASE_IMAGE" \
+            '{$repository, $sha, $run_id, $attempt, $image}' > release.json
+      - name: Publicar manifesto de release de staging
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release.json
+          if-no-files-found: error
+          retention-days: 30

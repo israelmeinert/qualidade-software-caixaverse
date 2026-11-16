@@ -1,0 +1,40 @@
+name: caixaverse-rewards-release
+services:
+  db:
+    image: postgres:17.12-alpine@sha256:34261f594522cf41dfcb76aefd42b9d201098b0e6b23c9c68733f169e4218b6f
+    environment:
+      POSTGRES_DB: rewards
+      POSTGRES_USER: ${REWARDS_DB_USER:?Configure REWARDS_DB_USER}
+      POSTGRES_PASSWORD: ${REWARDS_DB_PASSWORD:?Configure REWARDS_DB_PASSWORD}
+    volumes:
+      - rewards-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 3s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+  app:
+    image: ${REWARDS_IMAGE:?Use scripts/deploy/update.sh com uma imagem por digest}
+    environment:
+      REWARDS_JDBC_URL: jdbc:postgresql://db:5432/rewards
+      REWARDS_DB_USER: ${REWARDS_DB_USER:?Configure REWARDS_DB_USER}
+      REWARDS_DB_PASSWORD: ${REWARDS_DB_PASSWORD:?Configure REWARDS_DB_PASSWORD}
+      REWARDS_JWT_ISSUER: ${REWARDS_JWT_ISSUER:?Configure REWARDS_JWT_ISSUER}
+      REWARDS_JWT_PUBLIC_KEY_LOCATION: /run/keys/jwt-public.pem
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    volumes:
+      - ./jwt-public.pem:/run/keys/jwt-public.pem:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "--max-time", "3", "http://127.0.0.1:8080/q/health/ready"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
+volumes:
+  rewards-db:

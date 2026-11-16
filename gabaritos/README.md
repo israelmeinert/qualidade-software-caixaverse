@@ -1,0 +1,6 @@
+# Gabaritos comentados
+
+1. As asserções precisam observar o resultado. Teste 10 → 150 e 45 → 500 a partir da regra. Inclua 9 → 90 e uma entrada extrema para detectar overflow. A linha executada pode retornar valor incorreto. A evidência HTTP deve conferir também titularidade e efeitos persistidos.
+2. O mutador trocou a comparação de fronteira. O teste `calculate(10) == 150` falha primeiro no original com 100. Após corrigir a comparação inclusiva, a mesma entrada mata a alteração inversa. O diagnóstico inteiro usa a classe e os testes Jupiter puros.
+3. Carteira bloqueada primeiro serializa os dois débitos. Restam 30 pontos, um pedido confirmado, um lançamento de −60 e uma unidade debitada do estoque ao todo. Duas carteiras e último produto disputam o lock do produto; só uma tem débito e o estoque fica zero. Chaves iguais de colaboradores diferentes podem coexistir. A restrição `(employee_id, idempotency_key)`, a verificação sob lock e o replay com payload igual evitam débito duplicado. Compare o UUID do pedido, saldo e extrato; payload divergente deve dar 409.
+4. É necessário sucesso de staging com smoke e manifesto do mesmo workflow, run, tentativa, SHA e imagem. O resolvedor verifica jobs e a origem via GitHub API. Acionar o dispatch também não comprova aprovação independente.
