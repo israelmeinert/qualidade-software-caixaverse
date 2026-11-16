@@ -2,7 +2,7 @@
 
 Laboratório de qualidade para uma API MVC em Java 21 e Quarkus. Colaboradores recebem pontos por entregas e resgatam prêmios do catálogo.
 
-**Baseline da aula.** A regra dá 50 pontos de bônus a partir de 10 entregas, inclusive. A implementação desta fase usa `> 10`. Para 10 entregas a API retorna 100 em vez de 150. Os nove testes fracos da política passam porque quase só verificam exceções.
+**Falha intencional desta fase.** O teste forte exige 150 pontos para 10 entregas. A implementação ainda retorna 100. Execute `./mvnw -B clean test` para observar a falha antes da correção.
 
 ## Executar localmente
 
