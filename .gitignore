@@ -1,0 +1,7 @@
+/conteudo/
+/target/
+/.env
+/.local/
+*.pem
+.idea/
+*.iml
