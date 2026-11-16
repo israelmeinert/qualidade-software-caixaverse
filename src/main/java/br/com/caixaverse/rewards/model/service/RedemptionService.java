@@ -6,6 +6,7 @@ import br.com.caixaverse.rewards.model.entity.Wallet;
 import br.com.caixaverse.rewards.model.exception.BusinessException;
 import br.com.caixaverse.rewards.model.repository.ProductRepository;
 import br.com.caixaverse.rewards.model.repository.RedemptionRepository;
+import br.com.caixaverse.rewards.model.repository.PostgresLocks;
 import br.com.caixaverse.rewards.model.repository.WalletRepository;
 import br.com.caixaverse.rewards.view.request.RedemptionRequest;
 import br.com.caixaverse.rewards.view.response.RedemptionResponse;
@@ -22,18 +23,20 @@ public class RedemptionService {
     private final ProductRepository products;
     private final RedemptionRepository orders;
     private final LedgerService ledger;
+    private final PostgresLocks locks;
 
     public RedemptionService(WalletRepository wallets, ProductRepository products,
-                             RedemptionRepository orders, LedgerService ledger) {
+                             RedemptionRepository orders, LedgerService ledger, PostgresLocks locks) {
         this.wallets = wallets;
         this.products = products;
         this.orders = orders;
         this.ledger = ledger;
+        this.locks = locks;
     }
 
     @Transactional
     public RedemptionResponse redeem(String employeeId, String key, RedemptionRequest request) {
-        wallets.limitLockWait();
+        locks.setTimeoutForCurrentTransaction();
         Wallet wallet = wallets.lock(employeeId)
                 .orElseThrow(() -> BusinessException.notFound("Carteira não encontrada"));
         Optional<Redemption> existing = orders.byKey(employeeId, key);

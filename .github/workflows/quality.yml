@@ -97,9 +97,36 @@ jobs:
           ./mvnw -B -Pcoverage org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar \
             -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300
 
+  mutation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Executar PIT e verificar o relatório
+        run: |
+          ./mvnw -B -Pmutation clean test-compile org.pitest:pitest-maven:1.30.2:mutationCoverage \
+            -Dpit.mutationThreshold=80 -Dpit.coverageThreshold=80
+          python3 scripts/check-mutations.py target/pit-reports/mutations.xml
+      - name: Publicar mutação
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pit-${{ github.run_attempt }}
+          path: target/pit-reports/
+          if-no-files-found: warn
+          retention-days: 14
+
   quality-required:
     if: ${{ always() && github.event_name == 'pull_request' }}
-    needs: [tests]
+    needs: [tests, mutation]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -113,7 +140,7 @@ jobs:
 
   quality-required-delivery:
     if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/final' }}
-    needs: [tests, sonar]
+    needs: [tests, mutation, sonar]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

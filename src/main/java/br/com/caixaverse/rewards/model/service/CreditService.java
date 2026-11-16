@@ -5,6 +5,7 @@ import br.com.caixaverse.rewards.model.entity.Wallet;
 import br.com.caixaverse.rewards.model.exception.BusinessException;
 import br.com.caixaverse.rewards.model.policy.MonthlyCreditPolicy;
 import br.com.caixaverse.rewards.model.repository.MonthlyCreditRepository;
+import br.com.caixaverse.rewards.model.repository.PostgresLocks;
 import br.com.caixaverse.rewards.model.repository.WalletRepository;
 import br.com.caixaverse.rewards.view.response.CreditResponse;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -18,18 +19,20 @@ public class CreditService {
     private final WalletRepository wallets;
     private final MonthlyCreditRepository credits;
     private final LedgerService ledger;
+    private final PostgresLocks locks;
     private final MonthlyCreditPolicy policy = new MonthlyCreditPolicy();
 
-    public CreditService(WalletRepository wallets, MonthlyCreditRepository credits, LedgerService ledger) {
+    public CreditService(WalletRepository wallets, MonthlyCreditRepository credits, LedgerService ledger, PostgresLocks locks) {
         this.wallets = wallets;
         this.credits = credits;
         this.ledger = ledger;
+        this.locks = locks;
     }
 
     @Transactional
     public CreditResponse post(String employeeId, YearMonth competence, int deliveries) {
         int points = policy.calculate(deliveries);
-        wallets.limitLockWait();
+        locks.setTimeoutForCurrentTransaction();
         wallets.ensureExists(employeeId);
         Wallet wallet = wallets.lock(employeeId).orElseThrow();
 

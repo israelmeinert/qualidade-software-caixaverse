@@ -3,7 +3,7 @@ package br.com.caixaverse.rewards.model.service;
 import br.com.caixaverse.rewards.model.entity.Product;
 import br.com.caixaverse.rewards.model.exception.BusinessException;
 import br.com.caixaverse.rewards.model.repository.ProductRepository;
-import br.com.caixaverse.rewards.model.repository.WalletRepository;
+import br.com.caixaverse.rewards.model.repository.PostgresLocks;
 import br.com.caixaverse.rewards.view.request.ProductRequest;
 import br.com.caixaverse.rewards.view.response.ProductResponse;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -14,11 +14,11 @@ import java.util.List;
 @ApplicationScoped
 public class CatalogService {
     private final ProductRepository products;
-    private final WalletRepository transactionSettings;
+    private final PostgresLocks locks;
 
-    public CatalogService(ProductRepository products, WalletRepository transactionSettings) {
+    public CatalogService(ProductRepository products, PostgresLocks locks) {
         this.products = products;
-        this.transactionSettings = transactionSettings;
+        this.locks = locks;
     }
 
     public List<ProductResponse> list(int page, int size) {
@@ -32,7 +32,7 @@ public class CatalogService {
 
     @Transactional
     public ProductResponse create(ProductRequest request) {
-        transactionSettings.limitLockWait();
+        locks.setTimeoutForCurrentTransaction();
         Product product = new Product();
         apply(product, request);
         products.persist(product);
@@ -41,7 +41,7 @@ public class CatalogService {
 
     @Transactional
     public ProductResponse update(long id, ProductRequest request) {
-        transactionSettings.limitLockWait();
+        locks.setTimeoutForCurrentTransaction();
         Product product = products.lock(id).orElseThrow(CatalogService::missingProduct);
         apply(product, request);
         return ProductResponse.from(product);

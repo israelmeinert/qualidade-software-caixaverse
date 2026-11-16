@@ -2,7 +2,7 @@
 
 Laboratório de qualidade para uma API MVC em Java 21 e Quarkus. Colaboradores recebem pontos por entregas e resgatam prêmios do catálogo.
 
-**Falha intencional desta fase.** O teste forte exige 150 pontos para 10 entregas. A implementação ainda retorna 100. Execute `./mvnw -B clean test` para observar a falha antes da correção.
+**Regra corrigida nesta fase.** Exatamente 10 entregas geram 150 pontos. A baseline defeituosa continua na `main`.
 
 ## Executar localmente
 

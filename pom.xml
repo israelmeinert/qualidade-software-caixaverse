@@ -55,6 +55,7 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-jwt-build</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -174,7 +175,7 @@
       <properties>
         <pitest.version>1.30.2</pitest.version>
         <pitest.junit5.version>1.2.3</pitest.junit5.version>
-        <pit.mutationThreshold>0</pit.mutationThreshold>
+        <pit.mutationThreshold>80</pit.mutationThreshold>
         <pit.coverageThreshold>80</pit.coverageThreshold>
       </properties>
       <build>

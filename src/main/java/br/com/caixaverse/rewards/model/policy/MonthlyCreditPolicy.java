@@ -8,7 +8,7 @@ public class MonthlyCreditPolicy {
             throw BusinessException.invalid("O número de entregas deve ser não negativo");
         }
         long points = deliveries * 10L;
-        if (deliveries > 10) { // Defeito intencional da aula. A especificação inclui 10.
+        if (deliveries >= 10) {
             points += 50L;
         }
         return (int) Math.min(points, 500L);

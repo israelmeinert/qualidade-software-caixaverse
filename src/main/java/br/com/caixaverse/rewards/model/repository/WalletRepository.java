@@ -18,9 +18,4 @@ public class WalletRepository implements PanacheRepositoryBase<Wallet, String> {
     public Optional<Wallet> lock(String employeeId) {
         return Optional.ofNullable(findById(employeeId, LockModeType.PESSIMISTIC_WRITE));
     }
-
-    public void limitLockWait() {
-        getEntityManager().createNativeQuery("SELECT set_config('lock_timeout', '3s', true)")
-                .getSingleResult();
-    }
 }
